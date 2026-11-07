@@ -2,7 +2,7 @@
 <html lang="en">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
     <title>Stillroom — Test Card Simulator</title>
     <style>
         :root {
@@ -433,29 +433,213 @@
             }
         }
 
-        @media (max-width: 360px) {
-            .app {
-                padding-right: 8px;
-                padding-left: 8px;
-            }
+        @media (max-width: 480px) {
+    html {
+        font-size: 14px;
+    }
 
-            .board {
-                padding: 10px;
-            }
+    body {
+        overflow-x: hidden;
+        font-size: 13px;
+    }
 
-            .hand {
-                gap: 7px;
-            }
+    .app {
+        width: 100%;
+        max-width: none;
+        padding: 10px 8px 20px;
+    }
 
-            .card {
-                min-height: 115px;
-                padding: 8px;
-            }
+    header {
+        align-items: flex-start;
+        flex-direction: column;
+        gap: 9px;
+        padding-bottom: 11px;
+    }
 
-                .card h3 {
-                    font-size: 14px;
-                }
-        }
+    .eyebrow,
+    .section-label {
+        font-size: 9px;
+        letter-spacing: .12em;
+    }
+
+    h1 {
+        margin-top: 2px;
+        font-size: clamp(24px, 8vw, 31px);
+        line-height: 1.05;
+    }
+
+    .status {
+        display: grid;
+        width: 100%;
+        grid-template-columns: repeat(3, auto);
+        justify-content: space-between;
+        gap: 6px;
+        font-size: 10px;
+    }
+
+    .board {
+        min-height: 0;
+        margin-top: 11px;
+        padding: 9px;
+        border-radius: 4px;
+    }
+
+    .board-heading,
+    .section-heading {
+        align-items: flex-start;
+        flex-direction: column;
+        gap: 5px;
+        margin-bottom: 9px;
+    }
+
+    .hint {
+        font-size: 10px;
+        line-height: 1.3;
+    }
+
+    .actions {
+        grid-template-columns: 1fr;
+        gap: 8px;
+    }
+
+    .action {
+        min-height: 0;
+        padding: 9px;
+    }
+
+    .action-top {
+        margin-bottom: 5px;
+    }
+
+    .action h2 {
+        font-size: 16px;
+        line-height: 1.15;
+    }
+
+    .duration,
+    .tag {
+        font-size: 9px;
+    }
+
+    .action p {
+        min-height: 0;
+        margin-bottom: 6px;
+        font-size: 11px;
+        line-height: 1.3;
+    }
+
+    .slot {
+        min-height: 52px;
+        gap: 4px;
+        font-size: 10px;
+    }
+
+    .action-controls {
+        align-items: center;
+        margin-top: 7px;
+    }
+
+    .action-note {
+        font-size: 10px;
+    }
+
+    .start,
+    .reset {
+        min-height: 34px;
+        padding: 6px 9px;
+        font-size: 12px;
+    }
+
+    .progress {
+        margin-top: 7px;
+    }
+
+    .collection {
+        margin-top: 14px;
+    }
+
+    .hand {
+        display: grid;
+        grid-template-columns: repeat(2, minmax(0, 1fr));
+        min-height: 0;
+        gap: 7px;
+        padding: 2px 0 6px;
+        overflow: visible;
+    }
+
+    .card {
+        width: 100%;
+        min-width: 0;
+        min-height: 108px;
+        padding: 8px;
+    }
+
+    .card h3 {
+        margin: 7px 0 4px;
+        font-size: 14px;
+        line-height: 1.05;
+    }
+
+    .card p {
+        font-size: 9px;
+        line-height: 1.25;
+    }
+
+    .card .life {
+        padding-top: 5px;
+        font-size: 8px;
+    }
+
+    .empty {
+        grid-column: 1 / -1;
+        padding: 20px 0;
+    }
+
+    .log {
+        font-size: 10px;
+        line-height: 1.45;
+    }
+}
+
+@media (max-width: 350px) {
+    .app {
+        padding-right: 6px;
+        padding-left: 6px;
+    }
+
+    .board {
+        padding: 8px;
+    }
+
+    .hand {
+        gap: 5px;
+    }
+
+    .card {
+        min-height: 100px;
+        padding: 7px;
+    }
+
+    .card h3 {
+        font-size: 13px;
+    }
+
+    .card p {
+        font-size: 8px;
+    }
+}
+
+@media (min-width: 768px) {
+    .actions {
+        grid-template-columns: repeat(2, minmax(0, 1fr));
+    }
+}
+
+@media (min-width: 1100px) {
+    .actions {
+        grid-template-columns: repeat(3, minmax(0, 1fr));
+    }
+}
     </style>
 </head>
 <body>
@@ -463,7 +647,7 @@
         <header>
             <div>
                 <div class="eyebrow">A small engine of strange things</div>
-                <h1>The Stillroom</h1>
+                <h1>The Stillroom ver 0.02</h1>
             </div>
 
             <div class="status">
