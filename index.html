@@ -1,581 +1,918 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-  <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1">
-  <title>Stillroom — Test Card Simulator</title>
-  <style>
-    :root {
-      color-scheme: dark;
-      --ink: #e9e4d8;
-      --muted: #9b988e;
-      --felt: #202923;
-      --line: #526052;
-      --gold: #dfb86c;
-      --card: #ece5d6;
-      --card-ink: #28271f;
-    }
-
-    * { box-sizing: border-box; }
-
-    body {
-      margin: 0;
-      min-height: 100vh;
-      background: #171b18;
-      color: var(--ink);
-      font: 14px/1.45 Georgia, "Times New Roman", serif;
-    }
-
-    button { font: inherit; }
-
-    .app {
-      max-width: 1440px;
-      margin: auto;
-      padding: 26px;
-    }
-
-    header {
-      display: flex;
-      justify-content: space-between;
-      align-items: flex-end;
-      gap: 20px;
-      padding-bottom: 19px;
-      border-bottom: 1px solid #42483f;
-    }
-
-    .eyebrow, .section-label {
-      color: var(--muted);
-      font: 11px/1.3 system-ui, sans-serif;
-      letter-spacing: .16em;
-      text-transform: uppercase;
-    }
-
-    h1 {
-      margin: 3px 0 0;
-      font-size: clamp(27px, 4vw, 39px);
-      font-weight: 400;
-      letter-spacing: .03em;
-    }
-
-    .status {
-      display: flex;
-      gap: 19px;
-      color: var(--muted);
-      font: 12px system-ui, sans-serif;
-    }
-
-    .status strong { color: var(--gold); font-weight: 500; }
-
-    .board {
-      min-height: 430px;
-      margin-top: 22px;
-      padding: 23px;
-      border: 1px solid #4a5549;
-      border-radius: 5px;
-      background:
-        radial-gradient(ellipse at center, rgba(72, 92, 72, .18), transparent 75%),
-        repeating-linear-gradient(0deg, transparent 0 39px, rgba(210,220,190,.018) 40px),
-        var(--felt);
-      box-shadow: inset 0 0 70px rgba(0,0,0,.24);
-    }
-
-    .board-heading, .section-heading {
-      display: flex;
-      justify-content: space-between;
-      align-items: baseline;
-      gap: 15px;
-      margin-bottom: 15px;
-    }
-
-    .hint {
-      color: var(--muted);
-      font: 12px system-ui, sans-serif;
-    }
-
-    .actions {
-      display: grid;
-      grid-template-columns: repeat(3, minmax(0, 1fr));
-      gap: 14px;
-    }
-
-    .action {
-      min-height: 235px;
-      padding: 15px;
-      border: 1px dashed #65705e;
-      border-radius: 4px;
-      background: rgba(10, 15, 12, .22);
-      transition: border-color .15s, background .15s;
-    }
-
-    .action.over {
-      border-color: var(--gold);
-      background: rgba(223,184,108,.08);
-    }
-
-    .action-top {
-      display: flex;
-      justify-content: space-between;
-      align-items: center;
-      gap: 8px;
-      margin-bottom: 9px;
-    }
-
-    .action h2 {
-      margin: 0;
-      font-size: 19px;
-      font-weight: 400;
-    }
-
-    .duration, .tag {
-      color: var(--muted);
-      font: 10px system-ui, sans-serif;
-      letter-spacing: .08em;
-      text-transform: uppercase;
-    }
-
-    .action p {
-      min-height: 34px;
-      margin: 0 0 12px;
-      color: #b8b8aa;
-      font-size: 13px;
-    }
-
-    .slot {
-      display: flex;
-      min-height: 83px;
-      align-items: center;
-      justify-content: center;
-      gap: 9px;
-      flex-wrap: wrap;
-      border-top: 1px solid rgba(220,220,200,.12);
-      border-bottom: 1px solid rgba(220,220,200,.12);
-      color: #858b7d;
-      font: 12px system-ui, sans-serif;
-    }
-
-    .action-controls {
-      display: flex;
-      justify-content: space-between;
-      align-items: center;
-      gap: 8px;
-      margin-top: 11px;
-    }
-
-    .action-note { color: var(--muted); font-size: 11px; }
-
-    .start, .reset {
-      padding: 7px 12px;
-      border: 1px solid #a28a58;
-      border-radius: 3px;
-      background: transparent;
-      color: var(--gold);
-      cursor: pointer;
-    }
-
-    .start:hover, .reset:hover { background: rgba(223,184,108,.12); }
-    .start:disabled { opacity: .4; cursor: not-allowed; }
-
-    .progress {
-      height: 3px;
-      margin-top: 10px;
-      overflow: hidden;
-      background: #343b33;
-    }
-
-    .progress span {
-      display: block;
-      width: 0;
-      height: 100%;
-      background: var(--gold);
-    }
-
-    .progress.running span {
-      width: 100%;
-      transition-property: width;
-      transition-timing-function: linear;
-    }
-
-    .collection {
-      margin-top: 24px;
-    }
-
-    .hand {
-      display: flex;
-      min-height: 167px;
-      align-items: flex-start;
-      gap: 12px;
-      padding: 4px 2px 12px;
-      overflow-x: auto;
-    }
-
-    .card {
-      position: relative;
-      display: flex;
-      flex: 0 0 126px;
-      min-height: 151px;
-      flex-direction: column;
-      padding: 12px 11px;
-      border: 1px solid #d3c8ae;
-      border-radius: 4px;
-      background: var(--card);
-      color: var(--card-ink);
-      box-shadow: 2px 4px 9px rgba(0,0,0,.22);
-      cursor: grab;
-      user-select: none;
-      transition: transform .15s, box-shadow .15s;
-    }
-
-    .card:hover {
-      transform: translateY(-4px);
-      box-shadow: 2px 8px 15px rgba(0,0,0,.3);
-    }
-
-    .card:active { cursor: grabbing; }
-    .card.dragging { opacity: .4; }
-
-    .card .tag {
-      color: #77705f;
-      font-size: 9px;
-    }
-
-    .card h3 {
-      margin: 11px 0 5px;
-      font-size: 17px;
-      line-height: 1.05;
-      font-weight: 400;
-    }
-
-    .card p {
-      margin: 0;
-      color: #625e53;
-      font-size: 11px;
-      line-height: 1.35;
-    }
-
-    .card .life {
-      margin-top: auto;
-      padding-top: 9px;
-      color: #857554;
-      font: 9px system-ui, sans-serif;
-      letter-spacing: .04em;
-      text-transform: uppercase;
-    }
-
-    .empty {
-      padding: 35px 0;
-      color: var(--muted);
-      font-style: italic;
-    }
-
-    .log {
-      max-width: 100%;
-      color: var(--muted);
-      font: 12px/1.65 system-ui, sans-serif;
-    }
-
-    .log p { margin: 3px 0; }
-    .log strong { color: #d8c492; font-weight: 500; }
-
-    @media (max-width: 760px) {
-      .app { padding: 18px 14px; }
-      header { align-items: flex-start; flex-direction: column; }
-      .actions { grid-template-columns: 1fr; }
-      .action { min-height: 210px; }
-      .board { padding: 15px; }
-      .board-heading { align-items: flex-start; flex-direction: column; }
-    }
-  </style>
-</head>
-<body>
-  <main class="app">
-    <header>
-      <div>
-        <div class="eyebrow">A small engine of strange things</div>
-        <h1>The Stillroom</h1>
-      </div>
-      <div class="status">
-        <span>Day <strong id="day">1</strong></span>
-        <span>Insight <strong id="insight">0</strong></span>
-        <span id="clock">Ready</span>
-      </div>
-    </header>
-
-    <section class="board" aria-label="Action board">
-      <div class="board-heading">
-        <div class="section-label">Processing table</div>
-        <div class="hint">Drag cards from the collection into an action. Each action runs independently.</div>
-      </div>
-      <div class="actions" id="actions"></div>
-    </section>
-
-    <section class="collection">
-      <div class="section-heading">
-        <div class="section-label">Your collection</div>
-        <div class="hint" id="card-count"></div>
-      </div>
-      <div class="hand" id="hand" aria-label="Card collection"></div>
-    </section>
-
-    <section>
-      <div class="section-heading">
-        <div class="section-label">Table notes</div>
-        <button class="reset" id="reset">Start over</button>
-      </div>
-      <div class="log" id="log" aria-live="polite"></div>
-    </section>
-  </main>
-
-  <script>
-    const recipes = [
-      {
-        id: "study",
-        name: "Study the map",
-        time: 5000,
-        description: "Turn a map and a moment of quiet into a useful discovery.",
-        accepts: ["Map", "Silence"],
-        output: "Route",
-        note: "Needs Map + Silence",
-        result: "You trace a hidden passage through the margins."
-      },
-      {
-        id: "gather",
-        name: "Gather herbs",
-        time: 7000,
-        description: "A little patience and a patch of ground yield supplies.",
-        accepts: ["Garden", "Patience"],
-        output: "Herbs",
-        note: "Needs Garden + Patience",
-        result: "Fresh herbs are ready for a different sort of work."
-      },
-      {
-        id: "brew",
-        name: "Brew a tonic",
-        time: 9000,
-        description: "Combine a remedy with something worth preserving.",
-        accepts: ["Herbs", "Memory"],
-        output: "Tonic",
-        note: "Needs Herbs + Memory",
-        result: "The mixture settles into a curious, restorative tonic."
-      },
-      {
-        id: "reflect",
-        name: "Sit with a thought",
-        time: 6000,
-        description: "Give a discovery time to become understanding.",
-        accepts: ["Route", "Patience"],
-        output: "Insight",
-        note: "Needs Route + Patience",
-        result: "The route reveals a pattern you had overlooked."
-      }
-    ];
-
-    const initialCards = [
-      ["Map", "Knowledge", "An old map with a blank corner."],
-      ["Silence", "Condition", "A rare moment without interruption."],
-      ["Garden", "Place", "A small plot behind the house."],
-      ["Patience", "Quality", "Some things cannot be hurried."],
-      ["Memory", "Knowledge", "A name you almost remember."]
-    ];
-
-    let cards = [];
-    let insight = 0;
-    let day = 1;
-    let cardId = 0;
-    let timers = {};
-    let startedAt = Date.now();
-
-    const $ = selector => document.querySelector(selector);
-    const actionsEl = $("#actions");
-    const handEl = $("#hand");
-
-    const escapeHtml = value => String(value).replace(/[&<>"']/g, char => ({
-      "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#039;"
-    }[char]));
-
-    function addCard(name, type, description, life = "Keepsake") {
-      cards.push({ id: ++cardId, name, type, description, life });
-    }
-
-    function log(message) {
-      const entry = document.createElement("p");
-      entry.innerHTML = message;
-      $("#log").prepend(entry);
-    }
-
-    function renderActions() {
-      actionsEl.innerHTML = recipes.map(recipe => `
-        <article class="action" data-action="${recipe.id}">
-          <div class="action-top">
-            <h2>${escapeHtml(recipe.name)}</h2>
-            <span class="duration">${recipe.time / 1000}s</span>
-          </div>
-          <p>${escapeHtml(recipe.description)}</p>
-          <div class="slot" data-slot="${recipe.id}">${escapeHtml(recipe.note)}</div>
-          <div class="action-controls">
-            <span class="action-note" id="note-${recipe.id}">Drop cards here</span>
-            <button class="start" data-start="${recipe.id}" disabled>Begin</button>
-          </div>
-          <div class="progress" id="progress-${recipe.id}"><span></span></div>
-        </article>
-      `).join("");
-
-      document.querySelectorAll(".action").forEach(action => {
-        action.addEventListener("dragover", event => {
-          event.preventDefault();
-          action.classList.add("over");
-        });
-        action.addEventListener("dragleave", () => action.classList.remove("over"));
-        action.addEventListener("drop", event => {
-          event.preventDefault();
-          action.classList.remove("over");
-          const card = cards.find(item => item.id === Number(event.dataTransfer.getData("text/plain")));
-          const recipe = recipes.find(item => item.id === action.dataset.action);
-          if (card) addToAction(recipe, card);
-        });
-      });
-
-      document.querySelectorAll("[data-start]").forEach(button => {
-        button.addEventListener("click", () => startAction(button.dataset.start));
-      });
-    }
-
-    function renderHand() {
-      $("#card-count").textContent = `${cards.length} card${cards.length === 1 ? "" : "s"}`;
-      handEl.innerHTML = cards.length ? cards.map(card => `
-        <article class="card" draggable="true" data-card="${card.id}">
-          <span class="tag">${escapeHtml(card.type)}</span>
-          <h3>${escapeHtml(card.name)}</h3>
-          <p>${escapeHtml(card.description)}</p>
-          <span class="life">${escapeHtml(card.life)}</span>
-        </article>
-      `).join("") : `<div class="empty">The table is quiet. The work is done.</div>`;
-
-      handEl.querySelectorAll(".card").forEach(element => {
-        element.addEventListener("dragstart", event => {
-          event.dataTransfer.setData("text/plain", element.dataset.card);
-          element.classList.add("dragging");
-        });
-        element.addEventListener("dragend", () => element.classList.remove("dragging"));
-      });
-    }
-
-    function addToAction(recipe, card) {
-      const slot = document.querySelector(`[data-slot="${recipe.id}"]`);
-      const selected = [...slot.querySelectorAll(".card")];
-
-      if (selected.some(item => Number(item.dataset.card) === card.id)) return;
-      if (selected.length >= recipe.accepts.length) {
-        log(`There is no room for <strong>${escapeHtml(card.name)}</strong> in ${escapeHtml(recipe.name)}.`);
-        return;
-      }
-      if (!recipe.accepts.includes(card.name)) {
-        log(`<strong>${escapeHtml(card.name)}</strong> does not fit ${escapeHtml(recipe.name)}.`);
-        return;
-      }
-
-      slot.innerHTML = "";
-      selected.forEach(item => slot.appendChild(item));
-      const mini = makeCardElement(card);
-      slot.appendChild(mini);
-
-      const nowSelected = [...slot.querySelectorAll(".card")];
-      const ready = nowSelected.length === recipe.accepts.length &&
-        recipe.accepts.every(name => nowSelected.some(item => item.dataset.name === name));
-
-      const button = document.querySelector(`[data-start="${recipe.id}"]`);
-      button.disabled = !ready;
-      $("#note-" + recipe.id).textContent = ready ? "Ready to process" : `${nowSelected.length}/${recipe.accepts.length} cards placed`;
-    }
-
-    function makeCardElement(card) {
-      const el = document.createElement("article");
-      el.className = "card";
-      el.draggable = false;
-      el.dataset.card = card.id;
-      el.dataset.name = card.name;
-      el.style.cssText = "flex-basis:92px;min-height:74px;padding:8px;";
-      el.innerHTML = `<span class="tag">${escapeHtml(card.type)}</span><h3 style="margin:7px 0 0;font-size:14px">${escapeHtml(card.name)}</h3>`;
-      return el;
-    }
-
-    function startAction(id) {
-      if (timers[id]) return;
-
-      const recipe = recipes.find(item => item.id === id);
-      const slot = document.querySelector(`[data-slot="${id}"]`);
-      const inputIds = [...slot.querySelectorAll(".card")].map(item => Number(item.dataset.card));
-
-      if (inputIds.length !== recipe.accepts.length) return;
-      const inputs = inputIds.map(inputId => cards.find(card => card.id === inputId));
-      if (inputs.some(card => !card)) return;
-
-      cards = cards.filter(card => !inputIds.includes(card.id));
-      slot.innerHTML = `<span>Processing ${escapeHtml(inputs.map(card => card.name).join(" + "))}…</span>`;
-      document.querySelector(`[data-start="${id}"]`).disabled = true;
-      $("#note-" + id).textContent = "In progress";
-      const bar = $("#progress-" + id);
-      bar.classList.add("running");
-      bar.firstElementChild.style.transitionDuration = recipe.time + "ms";
-      requestAnimationFrame(() => { bar.firstElementChild.style.width = "100%"; });
-
-      renderHand();
-      log(`${escapeHtml(recipe.name)} begins. The table keeps working.`);
-      timers[id] = setTimeout(() => {
-        delete timers[id];
-        bar.classList.remove("running");
-        bar.firstElementChild.style.transitionDuration = "0ms";
-        bar.firstElementChild.style.width = "0";
-        slot.innerHTML = escapeHtml(recipe.note);
-        $("#note-" + id).textContent = "Drop cards here";
-
-        if (recipe.output === "Insight") {
-          insight += 1;
-          $("#insight").textContent = insight;
-          addCard("Insight", "Discovery", "A connection made visible.", "Persistent");
-        } else {
-          const outputDescriptions = {
-            Route: "A passage marked in the map's blank corner.",
-            Herbs: "A fragrant bundle, freshly gathered.",
-            Tonic: "A restorative mixture with an unusual glow."
-          };
-          addCard(recipe.output, "Discovery", outputDescriptions[recipe.output], "Fresh");
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <title>Stillroom — Test Card Simulator</title>
+    <style>
+        :root {
+            color-scheme: dark;
+            --ink: #e9e4d8;
+            --muted: #9b988e;
+            --felt: #202923;
+            --gold: #dfb86c;
+            --card: #ece5d6;
+            --card-ink: #28271f;
         }
 
-        log(`<strong>${escapeHtml(recipe.output)}</strong> emerges. ${escapeHtml(recipe.result)}`);
-        renderHand();
-      }, recipe.time);
-    }
+        * {
+            box-sizing: border-box;
+        }
 
-    function updateClock() {
-      const elapsed = Math.floor((Date.now() - startedAt) / 60000);
-      if (elapsed >= day) {
-        day = elapsed + 1;
-        $("#day").textContent = day;
-        log(`A new day settles over the stillroom.`);
-      }
-    }
+        body {
+            margin: 0;
+            min-height: 100vh;
+            background: #171b18;
+            color: var(--ink);
+            font: 14px/1.45 Georgia, "Times New Roman", serif;
+        }
 
-    function resetGame() {
-      Object.values(timers).forEach(clearTimeout);
-      timers = {};
-      cards = [];
-      insight = 0;
-      day = 1;
-      cardId = 0;
-      startedAt = Date.now();
-      initialCards.forEach(([name, type, description]) => addCard(name, type, description));
-      $("#insight").textContent = "0";
-      $("#day").textContent = "1";
-      $("#log").innerHTML = "";
-      renderActions();
-      renderHand();
-      log(`A new beginning. Five cards wait on the table.`);
-    }
+        button {
+            font: inherit;
+        }
 
-    $("#reset").addEventListener("click", resetGame);
-    setInterval(updateClock, 15000);
+        .app {
+            max-width: 1440px;
+            margin: auto;
+            padding: 26px;
+        }
 
-    resetGame();
-  </script>
+        header {
+            display: flex;
+            justify-content: space-between;
+            align-items: flex-end;
+            gap: 20px;
+            padding-bottom: 19px;
+            border-bottom: 1px solid #42483f;
+        }
+
+        .eyebrow,
+        .section-label {
+            color: var(--muted);
+            font: 11px/1.3 system-ui, sans-serif;
+            letter-spacing: .16em;
+            text-transform: uppercase;
+        }
+
+        h1 {
+            margin: 3px 0 0;
+            font-size: clamp(27px, 4vw, 39px);
+            font-weight: 400;
+            letter-spacing: .03em;
+        }
+
+        .status {
+            display: flex;
+            gap: 19px;
+            color: var(--muted);
+            font: 12px system-ui, sans-serif;
+        }
+
+            .status strong {
+                color: var(--gold);
+                font-weight: 500;
+            }
+
+        .board {
+            min-height: 430px;
+            margin-top: 22px;
+            padding: 23px;
+            border: 1px solid #4a5549;
+            border-radius: 5px;
+            background: radial-gradient(ellipse at center, rgba(72, 92, 72, .18), transparent 75%), repeating-linear-gradient(0deg, transparent 0 39px, rgba(210,220,190,.018) 40px), var(--felt);
+            box-shadow: inset 0 0 70px rgba(0,0,0,.24);
+        }
+
+        .board-heading,
+        .section-heading {
+            display: flex;
+            justify-content: space-between;
+            align-items: baseline;
+            gap: 15px;
+            margin-bottom: 15px;
+        }
+
+        .hint {
+            color: var(--muted);
+            font: 12px system-ui, sans-serif;
+        }
+
+        .actions {
+            display: grid;
+            grid-template-columns: repeat(3, minmax(0, 1fr));
+            gap: 14px;
+        }
+
+        .action {
+            min-height: 235px;
+            padding: 15px;
+            border: 1px dashed #65705e;
+            border-radius: 4px;
+            background: rgba(10, 15, 12, .22);
+            transition: border-color .15s, background .15s;
+            touch-action: manipulation;
+        }
+
+            .action.over {
+                border-color: var(--gold);
+                background: rgba(223,184,108,.08);
+            }
+
+        .action-top {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            gap: 8px;
+            margin-bottom: 9px;
+        }
+
+        .action h2 {
+            margin: 0;
+            font-size: 19px;
+            font-weight: 400;
+        }
+
+        .duration,
+        .tag {
+            color: var(--muted);
+            font: 10px system-ui, sans-serif;
+            letter-spacing: .08em;
+            text-transform: uppercase;
+        }
+
+        .action p {
+            min-height: 34px;
+            margin: 0 0 12px;
+            color: #b8b8aa;
+            font-size: 13px;
+        }
+
+        .slot {
+            display: flex;
+            min-height: 83px;
+            align-items: center;
+            justify-content: center;
+            gap: 9px;
+            flex-wrap: wrap;
+            border-top: 1px solid rgba(220,220,200,.12);
+            border-bottom: 1px solid rgba(220,220,200,.12);
+            color: #858b7d;
+            font: 12px system-ui, sans-serif;
+        }
+
+        .action-controls {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            gap: 8px;
+            margin-top: 11px;
+        }
+
+        .action-note {
+            color: var(--muted);
+            font-size: 11px;
+        }
+
+        .start,
+        .reset {
+            padding: 7px 12px;
+            border: 1px solid #a28a58;
+            border-radius: 3px;
+            background: transparent;
+            color: var(--gold);
+            cursor: pointer;
+        }
+
+            .start:hover,
+            .reset:hover {
+                background: rgba(223,184,108,.12);
+            }
+
+            .start:disabled {
+                opacity: .4;
+                cursor: not-allowed;
+            }
+
+        .progress {
+            height: 3px;
+            margin-top: 10px;
+            overflow: hidden;
+            background: #343b33;
+        }
+
+            .progress span {
+                display: block;
+                width: 0;
+                height: 100%;
+                background: var(--gold);
+            }
+
+            .progress.running span {
+                width: 100%;
+                transition-property: width;
+                transition-timing-function: linear;
+            }
+
+        .collection {
+            margin-top: 24px;
+        }
+
+        .hand {
+            display: flex;
+            min-height: 167px;
+            align-items: flex-start;
+            gap: 12px;
+            padding: 4px 2px 12px;
+            overflow-x: auto;
+        }
+
+        .card {
+            position: relative;
+            display: flex;
+            flex: 0 0 126px;
+            min-height: 151px;
+            flex-direction: column;
+            padding: 12px 11px;
+            border: 1px solid #d3c8ae;
+            border-radius: 4px;
+            background: var(--card);
+            color: var(--card-ink);
+            box-shadow: 2px 4px 9px rgba(0,0,0,.22);
+            cursor: grab;
+            user-select: none;
+            touch-action: manipulation;
+            transition: transform .15s, box-shadow .15s;
+        }
+
+            .card:hover,
+            .card.selected {
+                transform: translateY(-4px);
+                box-shadow: 2px 8px 15px rgba(0,0,0,.3);
+            }
+
+            .card.selected {
+                outline: 2px solid var(--gold);
+                outline-offset: 3px;
+            }
+
+            .card:active {
+                cursor: grabbing;
+            }
+
+            .card.dragging {
+                opacity: .4;
+            }
+
+            .card .tag {
+                color: #77705f;
+                font-size: 9px;
+            }
+
+            .card h3 {
+                margin: 11px 0 5px;
+                font-size: 17px;
+                line-height: 1.05;
+                font-weight: 400;
+            }
+
+            .card p {
+                margin: 0;
+                color: #625e53;
+                font-size: 11px;
+                line-height: 1.35;
+            }
+
+            .card .life {
+                margin-top: auto;
+                padding-top: 9px;
+                color: #857554;
+                font: 9px system-ui, sans-serif;
+                letter-spacing: .04em;
+                text-transform: uppercase;
+            }
+
+        .empty {
+            padding: 35px 0;
+            color: var(--muted);
+            font-style: italic;
+        }
+
+        .log {
+            max-width: 100%;
+            color: var(--muted);
+            font: 12px/1.65 system-ui, sans-serif;
+        }
+
+            .log p {
+                margin: 3px 0;
+            }
+
+            .log strong {
+                color: #d8c492;
+                font-weight: 500;
+            }
+
+        @media (max-width: 900px) and (min-width: 761px) {
+            .actions {
+                grid-template-columns: repeat(2, minmax(0, 1fr));
+            }
+        }
+
+        @media (max-width: 760px) {
+            .app {
+                padding: 14px 10px 24px;
+            }
+
+            header {
+                align-items: flex-start;
+                flex-direction: column;
+                gap: 12px;
+                padding-bottom: 14px;
+            }
+
+            h1 {
+                font-size: clamp(25px, 9vw, 34px);
+            }
+
+            .status {
+                width: 100%;
+                justify-content: space-between;
+                gap: 8px;
+                font-size: 11px;
+            }
+
+            .board {
+                min-height: 0;
+                margin-top: 14px;
+                padding: 12px;
+            }
+
+            .board-heading {
+                align-items: flex-start;
+                flex-direction: column;
+                gap: 6px;
+                margin-bottom: 12px;
+            }
+
+            .hint {
+                font-size: 11px;
+                line-height: 1.35;
+            }
+
+            .actions {
+                grid-template-columns: 1fr;
+                gap: 10px;
+            }
+
+            .action {
+                min-height: 0;
+                padding: 12px;
+            }
+
+                .action h2 {
+                    font-size: 17px;
+                }
+
+                .action p {
+                    min-height: 0;
+                    margin-bottom: 9px;
+                    font-size: 12px;
+                }
+
+            .slot {
+                min-height: 65px;
+                gap: 6px;
+            }
+
+            .action-controls {
+                margin-top: 9px;
+            }
+
+            .start,
+            .reset {
+                min-height: 38px;
+                padding: 8px 11px;
+            }
+
+            .collection {
+                margin-top: 17px;
+            }
+
+            .hand {
+                display: grid;
+                grid-template-columns: repeat(2, minmax(0, 1fr));
+                min-height: 0;
+                gap: 9px;
+                padding: 3px 0 8px;
+                overflow: visible;
+            }
+
+            .card {
+                min-width: 0;
+                min-height: 125px;
+                padding: 10px 9px;
+            }
+
+                .card h3 {
+                    margin-top: 8px;
+                    font-size: 15px;
+                }
+
+                .card p {
+                    font-size: 10px;
+                }
+
+                .card .life {
+                    padding-top: 7px;
+                    font-size: 8px;
+                }
+
+            .empty {
+                grid-column: 1 / -1;
+                padding: 25px 0;
+            }
+        }
+
+        @media (max-width: 360px) {
+            .app {
+                padding-right: 8px;
+                padding-left: 8px;
+            }
+
+            .board {
+                padding: 10px;
+            }
+
+            .hand {
+                gap: 7px;
+            }
+
+            .card {
+                min-height: 115px;
+                padding: 8px;
+            }
+
+                .card h3 {
+                    font-size: 14px;
+                }
+        }
+    </style>
+</head>
+<body>
+    <main class="app">
+        <header>
+            <div>
+                <div class="eyebrow">A small engine of strange things</div>
+                <h1>The Stillroom</h1>
+            </div>
+
+            <div class="status">
+                <span>Day <strong id="day">1</strong></span>
+                <span>Insight <strong id="insight">0</strong></span>
+                <span id="clock">Ready</span>
+            </div>
+        </header>
+
+        <section class="board" aria-label="Action board">
+            <div class="board-heading">
+                <div class="section-label">Processing table</div>
+                <div class="hint" id="card-help">
+                    Drag cards into an action, or tap a card and then tap an action.
+                </div>
+            </div>
+
+            <div class="actions" id="actions"></div>
+        </section>
+
+        <section class="collection">
+            <div class="section-heading">
+                <div class="section-label">Your collection</div>
+                <div class="hint" id="card-count"></div>
+            </div>
+
+            <div class="hand" id="hand" aria-label="Card collection"></div>
+        </section>
+
+        <section>
+            <div class="section-heading">
+                <div class="section-label">Table notes</div>
+                <button class="reset" id="reset">Start over</button>
+            </div>
+
+            <div class="log" id="log" aria-live="polite"></div>
+        </section>
+    </main>
+
+    <script>
+        const recipes = [
+            {
+                id: "study",
+                name: "Study the map",
+                time: 5000,
+                description: "Turn a map and a moment of quiet into a useful discovery.",
+                accepts: ["Map", "Silence"],
+                output: "Route",
+                note: "Needs Map + Silence",
+                result: "You trace a hidden passage through the margins."
+            },
+            {
+                id: "gather",
+                name: "Gather herbs",
+                time: 7000,
+                description: "A little patience and a patch of ground yield supplies.",
+                accepts: ["Garden", "Patience"],
+                output: "Herbs",
+                note: "Needs Garden + Patience",
+                result: "Fresh herbs are ready for a different sort of work."
+            },
+            {
+                id: "brew",
+                name: "Brew a tonic",
+                time: 9000,
+                description: "Combine a remedy with something worth preserving.",
+                accepts: ["Herbs", "Memory"],
+                output: "Tonic",
+                note: "Needs Herbs + Memory",
+                result: "The mixture settles into a curious, restorative tonic."
+            },
+            {
+                id: "reflect",
+                name: "Sit with a thought",
+                time: 6000,
+                description: "Give a discovery time to become understanding.",
+                accepts: ["Route", "Patience"],
+                output: "Insight",
+                note: "Needs Route + Patience",
+                result: "The route reveals a pattern you had overlooked."
+            }
+        ];
+
+        const initialCards = [
+            ["Map", "Knowledge", "An old map with a blank corner."],
+            ["Silence", "Condition", "A rare moment without interruption."],
+            ["Garden", "Place", "A small plot behind the house."],
+            ["Patience", "Quality", "Some things cannot be hurried."],
+            ["Memory", "Knowledge", "A name you almost remember."]
+        ];
+
+        let cards = [];
+        let insight = 0;
+        let day = 1;
+        let cardId = 0;
+        let timers = {};
+        let startedAt = Date.now();
+        let selectedCardId = null;
+
+        const $ = selector => document.querySelector(selector);
+        const actionsEl = $("#actions");
+        const handEl = $("#hand");
+
+        const escapeHtml = value => String(value).replace(/[&<>"']/g, char => ({
+            "&": "&amp;",
+            "<": "&lt;",
+            ">": "&gt;",
+            '"': "&quot;",
+            "'": "&#039;"
+        }[char]));
+
+        function addCard(name, type, description, life = "Keepsake") {
+            cards.push({
+                id: ++cardId,
+                name,
+                type,
+                description,
+                life
+            });
+        }
+
+        function log(message) {
+            const entry = document.createElement("p");
+            entry.innerHTML = message;
+            $("#log").prepend(entry);
+        }
+
+        function clearSelectedCard() {
+            selectedCardId = null;
+
+            document.querySelectorAll(".card.selected").forEach(card => {
+                card.classList.remove("selected");
+            });
+        }
+
+        function selectCard(element) {
+            const id = Number(element.dataset.card);
+
+            if (selectedCardId === id) {
+                clearSelectedCard();
+                return;
+            }
+
+            clearSelectedCard();
+            selectedCardId = id;
+            element.classList.add("selected");
+        }
+
+        function renderActions() {
+            actionsEl.innerHTML = recipes.map(recipe => `
+            <article class="action" data-action="${recipe.id}">
+              <div class="action-top">
+                <h2>${escapeHtml(recipe.name)}</h2>
+                <span class="duration">${recipe.time / 1000}s</span>
+              </div>
+
+              <p>${escapeHtml(recipe.description)}</p>
+
+              <div class="slot" data-slot="${recipe.id}">
+                ${escapeHtml(recipe.note)}
+              </div>
+
+              <div class="action-controls">
+                <span class="action-note" id="note-${recipe.id}">
+                  Drop cards here
+                </span>
+                <button class="start" data-start="${recipe.id}" disabled>
+                  Begin
+                </button>
+              </div>
+
+              <div class="progress" id="progress-${recipe.id}">
+                <span></span>
+              </div>
+            </article>
+          `).join("");
+
+            document.querySelectorAll(".action").forEach(action => {
+                action.addEventListener("dragover", event => {
+                    event.preventDefault();
+                    action.classList.add("over");
+                });
+
+                action.addEventListener("dragleave", event => {
+                    if (!action.contains(event.relatedTarget)) {
+                        action.classList.remove("over");
+                    }
+                });
+
+                action.addEventListener("drop", event => {
+                    event.preventDefault();
+                    action.classList.remove("over");
+
+                    const draggedCardId = event.dataTransfer.getData("text/plain");
+                    const card = cards.find(item => item.id === Number(draggedCardId));
+                    const recipe = recipes.find(item => item.id === action.dataset.action);
+
+                    if (card) {
+                        addToAction(recipe, card);
+                    }
+                });
+
+                action.addEventListener("click", event => {
+                    if (event.target.closest("button")) {
+                        return;
+                    }
+
+                    if (selectedCardId === null) {
+                        return;
+                    }
+
+                    const card = cards.find(item => item.id === selectedCardId);
+                    const recipe = recipes.find(item => item.id === action.dataset.action);
+
+                    if (card && addToAction(recipe, card)) {
+                        clearSelectedCard();
+                    }
+                });
+            });
+
+            document.querySelectorAll("[data-start]").forEach(button => {
+                button.addEventListener("click", () => {
+                    startAction(button.dataset.start);
+                });
+            });
+        }
+
+        function renderHand() {
+            $("#card-count").textContent =
+                `${cards.length} card${cards.length === 1 ? "" : "s"}`;
+
+            handEl.innerHTML = cards.length
+                ? cards.map(card => `
+              <article class="card" draggable="true" data-card="${card.id}">
+                <span class="tag">${escapeHtml(card.type)}</span>
+                <h3>${escapeHtml(card.name)}</h3>
+                <p>${escapeHtml(card.description)}</p>
+                <span class="life">${escapeHtml(card.life)}</span>
+              </article>
+            `).join("")
+                : `<div class="empty">The table is quiet. The work is done.</div>`;
+
+            handEl.querySelectorAll(".card").forEach(element => {
+                element.addEventListener("click", event => {
+                    event.preventDefault();
+                    selectCard(element);
+                });
+
+                element.addEventListener("dragstart", event => {
+                    event.dataTransfer.setData("text/plain", element.dataset.card);
+                    element.classList.add("dragging");
+                });
+
+                element.addEventListener("dragend", () => {
+                    element.classList.remove("dragging");
+                });
+            });
+        }
+
+        function addToAction(recipe, card) {
+            const slot = document.querySelector(`[data-slot="${recipe.id}"]`);
+            const selected = [...slot.querySelectorAll(".card")];
+
+            if (selected.some(item => Number(item.dataset.card) === card.id)) {
+                return false;
+            }
+
+            if (selected.length >= recipe.accepts.length) {
+                log(
+                    `There is no room for <strong>${escapeHtml(card.name)}</strong> in ` +
+                    `${escapeHtml(recipe.name)}.`
+                );
+                return false;
+            }
+
+            if (!recipe.accepts.includes(card.name)) {
+                log(
+                    `<strong>${escapeHtml(card.name)}</strong> does not fit ` +
+                    `${escapeHtml(recipe.name)}.`
+                );
+                return false;
+            }
+
+            slot.innerHTML = "";
+            selected.forEach(item => slot.appendChild(item));
+            slot.appendChild(makeCardElement(card));
+
+            const nowSelected = [...slot.querySelectorAll(".card")];
+            const ready =
+                nowSelected.length === recipe.accepts.length &&
+                recipe.accepts.every(name =>
+                    nowSelected.some(item => item.dataset.name === name)
+                );
+
+            const button = document.querySelector(`[data-start="${recipe.id}"]`);
+            button.disabled = !ready;
+
+            $(`#note-${recipe.id}`).textContent = ready
+                ? "Ready to process"
+                : `${nowSelected.length}/${recipe.accepts.length} cards placed`;
+
+            return true;
+        }
+
+        function makeCardElement(card) {
+            const element = document.createElement("article");
+
+            element.className = "card";
+            element.draggable = false;
+            element.dataset.card = card.id;
+            element.dataset.name = card.name;
+            element.style.cssText =
+                "flex-basis:92px;min-height:74px;padding:8px;";
+            element.innerHTML =
+                `<span class="tag">${escapeHtml(card.type)}</span>` +
+                `<h3 style="margin:7px 0 0;font-size:14px">` +
+                `${escapeHtml(card.name)}</h3>`;
+
+            return element;
+        }
+
+        function startAction(id) {
+            if (timers[id]) {
+                return;
+            }
+
+            const recipe = recipes.find(item => item.id === id);
+            const slot = document.querySelector(`[data-slot="${id}"]`);
+            const inputIds = [...slot.querySelectorAll(".card")]
+                .map(item => Number(item.dataset.card));
+
+            if (inputIds.length !== recipe.accepts.length) {
+                return;
+            }
+
+            const inputs = inputIds.map(inputId =>
+                cards.find(card => card.id === inputId)
+            );
+
+            if (inputs.some(card => !card)) {
+                return;
+            }
+
+            cards = cards.filter(card => !inputIds.includes(card.id));
+
+            slot.innerHTML =
+                `<span>Processing ` +
+                `${escapeHtml(inputs.map(card => card.name).join(" + "))}…</span>`;
+
+            document.querySelector(`[data-start="${id}"]`).disabled = true;
+            $(`#note-${id}`).textContent = "In progress";
+
+            const bar = $(`#progress-${id}`);
+            bar.classList.add("running");
+            bar.firstElementChild.style.transitionDuration = `${recipe.time}ms`;
+
+            requestAnimationFrame(() => {
+                bar.firstElementChild.style.width = "100%";
+            });
+
+            clearSelectedCard();
+            renderHand();
+
+            log(`${escapeHtml(recipe.name)} begins. The table keeps working.`);
+
+            timers[id] = setTimeout(() => {
+                delete timers[id];
+
+                bar.classList.remove("running");
+                bar.firstElementChild.style.transitionDuration = "0ms";
+                bar.firstElementChild.style.width = "0";
+
+                slot.innerHTML = escapeHtml(recipe.note);
+                $(`#note-${id}`).textContent = "Drop cards here";
+
+                if (recipe.output === "Insight") {
+                    insight += 1;
+                    $("#insight").textContent = insight;
+
+                    addCard(
+                        "Insight",
+                        "Discovery",
+                        "A connection made visible.",
+                        "Persistent"
+                    );
+                } else {
+                    const outputDescriptions = {
+                        Route: "A passage marked in the map's blank corner.",
+                        Herbs: "A fragrant bundle, freshly gathered.",
+                        Tonic: "A restorative mixture with an unusual glow."
+                    };
+
+                    addCard(
+                        recipe.output,
+                        "Discovery",
+                        outputDescriptions[recipe.output],
+                        "Fresh"
+                    );
+                }
+
+                log(
+                    `<strong>${escapeHtml(recipe.output)}</strong> emerges. ` +
+                    `${escapeHtml(recipe.result)}`
+                );
+
+                renderHand();
+            }, recipe.time);
+        }
+
+        function updateClock() {
+            const elapsed = Math.floor((Date.now() - startedAt) / 60000);
+
+            if (elapsed >= day) {
+                day = elapsed + 1;
+                $("#day").textContent = day;
+                log("A new day settles over the stillroom.");
+            }
+        }
+
+        function resetGame() {
+            Object.values(timers).forEach(clearTimeout);
+
+            timers = {};
+            cards = [];
+            insight = 0;
+            day = 1;
+            cardId = 0;
+            startedAt = Date.now();
+
+            clearSelectedCard();
+
+            initialCards.forEach(([name, type, description]) => {
+                addCard(name, type, description);
+            });
+
+            $("#insight").textContent = "0";
+            $("#day").textContent = "1";
+            $("#log").innerHTML = "";
+
+            renderActions();
+            renderHand();
+
+            log("A new beginning. Five cards wait on the table.");
+        }
+
+        $("#reset").addEventListener("click", resetGame);
+        setInterval(updateClock, 15000);
+
+        resetGame();
+    </script>
 </body>
 </html>
