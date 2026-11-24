@@ -3,1100 +3,1191 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
-    <title>Stillroom — Test Card Simulator</title>
+    <meta name="theme-color" content="#171b18">
+    <title>Stillroom — Simulation Management</title>
+
     <style>
         :root {
             color-scheme: dark;
             --ink: #e9e4d8;
             --muted: #9b988e;
             --felt: #202923;
+            --felt-light: #2b382d;
             --gold: #dfb86c;
+            --gold-dark: #9f7d3c;
             --card: #ece5d6;
             --card-ink: #28271f;
+            --danger: #c97769;
+            --success: #9ebd83;
+            --border: #465448;
+            --shadow: rgba(0, 0, 0, .35);
         }
 
         * {
             box-sizing: border-box;
         }
 
+        html,
         body {
             margin: 0;
-            min-height: 100vh;
+            min-width: 320px;
+            min-height: 100%;
             background: #171b18;
+        }
+
+        body {
             color: var(--ink);
-            font: 14px/1.45 Georgia, "Times New Roman", serif;
+            font: 15px/1.45 Georgia, "Times New Roman", serif;
         }
 
         button {
+            min-height: 46px;
+            border: 1px solid var(--gold-dark);
+            border-radius: 6px;
+            padding: 10px 14px;
+            background: #263027;
+            color: var(--ink);
             font: inherit;
+            cursor: pointer;
+            touch-action: manipulation;
         }
 
-        .app {
-            max-width: 1440px;
-            margin: auto;
-            padding: 26px;
-        }
+            button:active {
+                transform: translateY(1px);
+            }
 
-        header {
+            button:hover,
+            button:focus-visible {
+                border-color: var(--gold);
+                background: #334335;
+                outline: none;
+            }
+
+            button.primary {
+                background: var(--gold);
+                color: #242117;
+            }
+
+                button.primary:hover,
+                button.primary:focus-visible {
+                    background: #efd18d;
+                }
+
+            button.danger {
+                border-color: #9c554d;
+                color: #f0b4a9;
+            }
+
+            button:disabled {
+                cursor: not-allowed;
+                opacity: .45;
+            }
+
+        .game {
             display: flex;
+            width: 100%;
+            min-height: 100dvh;
+            flex-direction: column;
+            background: radial-gradient(circle at 50% 0, rgba(75, 96, 75, .2), transparent 42rem), #171b18;
+        }
+
+        .game-header {
+            display: flex;
+            align-items: center;
             justify-content: space-between;
-            align-items: flex-end;
-            gap: 20px;
-            padding-bottom: 19px;
+            gap: 16px;
+            width: min(1180px, 100%);
+            margin: 0 auto;
+            padding: 16px 18px 12px;
             border-bottom: 1px solid #42483f;
         }
 
         .eyebrow,
-        .section-label {
+        .label,
+        .tag {
             color: var(--muted);
             font: 11px/1.3 system-ui, sans-serif;
-            letter-spacing: .16em;
+            letter-spacing: .14em;
             text-transform: uppercase;
         }
 
+        h1,
+        h2,
+        h3,
+        p {
+            margin-top: 0;
+        }
+
         h1 {
-            margin: 3px 0 0;
-            font-size: clamp(27px, 4vw, 39px);
+            margin-bottom: 0;
+            font-size: clamp(24px, 5vw, 38px);
             font-weight: 400;
             letter-spacing: .03em;
         }
 
-        .status {
-            display: flex;
-            gap: 19px;
-            color: var(--muted);
-            font: 12px system-ui, sans-serif;
+        h2 {
+            margin-bottom: 6px;
+            font-size: clamp(23px, 4vw, 32px);
+            font-weight: 400;
         }
 
-            .status strong {
+        h3 {
+            margin-bottom: 5px;
+            font-size: 18px;
+            font-weight: 400;
+        }
+
+        .header-status {
+            display: grid;
+            grid-template-columns: repeat(2, auto);
+            gap: 4px 14px;
+            color: var(--muted);
+            font: 12px system-ui, sans-serif;
+            text-align: right;
+        }
+
+            .header-status strong {
                 color: var(--gold);
                 font-weight: 500;
             }
 
-        .board {
-            min-height: 430px;
-            margin-top: 22px;
-            padding: 23px;
-            border: 1px solid #4a5549;
-            border-radius: 5px;
-            background: radial-gradient(ellipse at center, rgba(72, 92, 72, .18), transparent 75%), repeating-linear-gradient(0deg, transparent 0 39px, rgba(210,220,190,.018) 40px), var(--felt);
-            box-shadow: inset 0 0 70px rgba(0,0,0,.24);
-        }
-
-        .board-heading,
-        .section-heading {
+        .screen {
             display: flex;
+            width: min(1180px, 100%);
+            flex: 1;
+            flex-direction: column;
+            gap: 16px;
+            margin: 0 auto;
+            padding: 18px;
+        }
+
+        .scene {
+            flex: 1;
+            padding: clamp(16px, 3vw, 28px);
+            border: 1px solid var(--border);
+            border-radius: 9px;
+            background: repeating-linear-gradient( 0deg, transparent 0 39px, rgba(210, 220, 190, .018) 40px ), radial-gradient(ellipse at center, rgba(72, 92, 72, .18), transparent 75%), var(--felt);
+            box-shadow: inset 0 0 70px rgba(0, 0, 0, .24);
+        }
+
+        .scene-heading {
+            display: flex;
+            align-items: flex-start;
             justify-content: space-between;
-            align-items: baseline;
-            gap: 15px;
-            margin-bottom: 15px;
+            gap: 18px;
+            margin-bottom: 20px;
         }
 
-        .hint {
-            color: var(--muted);
-            font: 12px system-ui, sans-serif;
-        }
+            .scene-heading p {
+                max-width: 650px;
+                margin-bottom: 0;
+                color: #b8b8aa;
+            }
 
-        .actions {
+        .scene-art {
             display: grid;
-            grid-template-columns: repeat(3, minmax(0, 1fr));
-            gap: 14px;
+            min-height: 150px;
+            place-items: center;
+            margin-bottom: 18px;
+            border: 1px solid rgba(223, 184, 108, .22);
+            border-radius: 8px;
+            background: linear-gradient(135deg, rgba(35, 57, 39, .85), rgba(19, 27, 21, .9)), radial-gradient(circle at 50% 30%, #68775b, transparent 40%);
+            color: rgba(239, 209, 141, .75);
+            font-size: clamp(52px, 12vw, 90px);
         }
 
-        .action {
-            min-height: 235px;
-            padding: 15px;
-            border: 1px dashed #65705e;
-            border-radius: 4px;
-            background: rgba(10, 15, 12, .22);
-            transition: border-color .15s, background .15s;
-            touch-action: manipulation;
+        .grid {
+            display: grid;
+            grid-template-columns: repeat(2, minmax(0, 1fr));
+            gap: 12px;
         }
 
-            .action.over {
-                border-color: var(--gold);
-                background: rgba(223,184,108,.08);
+            .grid.three {
+                grid-template-columns: repeat(3, minmax(0, 1fr));
             }
 
-        .action-top {
+        .panel {
+            padding: 15px;
+            border: 1px solid rgba(160, 176, 150, .28);
+            border-radius: 7px;
+            background: rgba(10, 15, 12, .3);
+        }
+
+            .panel p:last-child {
+                margin-bottom: 0;
+            }
+
+        .panel-header {
+            display: flex;
+            align-items: baseline;
+            justify-content: space-between;
+            gap: 10px;
+            margin-bottom: 12px;
+        }
+
+            .panel-header h3 {
+                margin-bottom: 0;
+            }
+
+        .stat {
+            display: grid;
+            gap: 5px;
+            margin-bottom: 13px;
+        }
+
+            .stat:last-child {
+                margin-bottom: 0;
+            }
+
+        .stat-line {
             display: flex;
             justify-content: space-between;
-            align-items: center;
-            gap: 8px;
-            margin-bottom: 9px;
-        }
-
-        .action h2 {
-            margin: 0;
-            font-size: 19px;
-            font-weight: 400;
-        }
-
-        .duration,
-        .tag {
+            gap: 10px;
             color: var(--muted);
-            font: 10px system-ui, sans-serif;
-            letter-spacing: .08em;
-            text-transform: uppercase;
-        }
-
-        .action p {
-            min-height: 34px;
-            margin: 0 0 12px;
-            color: #b8b8aa;
-            font-size: 13px;
-        }
-
-        .slot {
-            display: flex;
-            min-height: 83px;
-            align-items: center;
-            justify-content: center;
-            gap: 9px;
-            flex-wrap: wrap;
-            border-top: 1px solid rgba(220,220,200,.12);
-            border-bottom: 1px solid rgba(220,220,200,.12);
-            color: #858b7d;
             font: 12px system-ui, sans-serif;
         }
 
-        .action-controls {
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-            gap: 8px;
-            margin-top: 11px;
-        }
-
-        .action-note {
-            color: var(--muted);
-            font-size: 11px;
-        }
-
-        .start,
-        .reset {
-            padding: 7px 12px;
-            border: 1px solid #a28a58;
-            border-radius: 3px;
-            background: transparent;
-            color: var(--gold);
-            cursor: pointer;
-        }
-
-            .start:hover,
-            .reset:hover {
-                background: rgba(223,184,108,.12);
+            .stat-line strong {
+                color: var(--ink);
+                font-weight: 500;
             }
 
-            .start:disabled {
-                opacity: .4;
-                cursor: not-allowed;
-            }
-
-        .progress {
-            height: 3px;
-            margin-top: 10px;
+        .meter {
+            height: 7px;
             overflow: hidden;
+            border-radius: 99px;
             background: #343b33;
         }
 
-            .progress span {
+            .meter span {
                 display: block;
-                width: 0;
                 height: 100%;
                 background: var(--gold);
             }
 
-            .progress.running span {
-                width: 100%;
-                transition-property: width;
-                transition-timing-function: linear;
+            .meter.health span {
+                background: var(--success);
             }
 
-        .collection {
-            margin-top: 24px;
+        .item-list,
+        .log {
+            display: grid;
+            gap: 8px;
         }
 
-        .hand {
+        .item {
             display: flex;
-            min-height: 167px;
-            align-items: flex-start;
+            align-items: center;
+            justify-content: space-between;
             gap: 12px;
-            padding: 4px 2px 12px;
-            overflow-x: auto;
+            padding: 10px;
+            border-bottom: 1px solid rgba(220, 220, 200, .1);
         }
 
-        .card {
-            position: relative;
+            .item:last-child {
+                border-bottom: 0;
+            }
+
+        .item-name {
+            display: block;
+            color: var(--ink);
+        }
+
+        .item-description {
+            display: block;
+            color: var(--muted);
+            font-size: 12px;
+        }
+
+        .item-count {
+            color: var(--gold);
+            font: 700 14px system-ui, sans-serif;
+        }
+
+        .actions {
             display: flex;
-            flex: 0 0 126px;
-            min-height: 151px;
-            flex-direction: column;
-            padding: 12px 11px;
-            border: 1px solid #d3c8ae;
-            border-radius: 4px;
-            background: var(--card);
-            color: var(--card-ink);
-            box-shadow: 2px 4px 9px rgba(0,0,0,.22);
-            cursor: grab;
-            user-select: none;
-            touch-action: manipulation;
-            transition: transform .15s, box-shadow .15s;
+            flex-wrap: wrap;
+            gap: 9px;
+            margin-top: 15px;
         }
 
-            .card:hover,
-            .card.selected {
-                transform: translateY(-4px);
-                box-shadow: 2px 8px 15px rgba(0,0,0,.3);
+            .actions button {
+                flex: 1 1 150px;
             }
 
-            .card.selected {
-                outline: 2px solid var(--gold);
-                outline-offset: 3px;
+        .nav {
+            display: grid;
+            grid-template-columns: repeat(4, 1fr);
+            gap: 8px;
+            width: min(1180px, 100%);
+            margin: 0 auto;
+            padding: 0 18px 18px;
+        }
+
+            .nav button {
+                min-height: 54px;
+                border-color: #465448;
+                color: var(--muted);
             }
 
-            .card:active {
-                cursor: grabbing;
-            }
+                .nav button.active {
+                    border-color: var(--gold);
+                    color: var(--gold);
+                }
 
-            .card.dragging {
-                opacity: .4;
-            }
+        .log {
+            max-height: 180px;
+            overflow-y: auto;
+            color: var(--muted);
+            font: 12px/1.55 system-ui, sans-serif;
+        }
 
-            .card .tag {
-                color: #77705f;
-                font-size: 9px;
-            }
-
-            .card h3 {
-                margin: 11px 0 5px;
-                font-size: 17px;
-                line-height: 1.05;
-                font-weight: 400;
-            }
-
-            .card p {
+            .log p {
                 margin: 0;
-                color: #625e53;
-                font-size: 11px;
-                line-height: 1.35;
+                padding-bottom: 7px;
+                border-bottom: 1px solid rgba(220, 220, 200, .1);
             }
 
-            .card .life {
-                margin-top: auto;
-                padding-top: 9px;
-                color: #857554;
-                font: 9px system-ui, sans-serif;
-                letter-spacing: .04em;
-                text-transform: uppercase;
+        .notice {
+            margin-bottom: 14px;
+            padding: 10px 12px;
+            border-left: 3px solid var(--gold);
+            background: rgba(223, 184, 108, .08);
+            color: #d8c492;
+        }
+
+            .notice.error {
+                border-left-color: var(--danger);
+                color: #e1a79d;
             }
 
         .empty {
-            padding: 35px 0;
+            padding: 20px 0;
             color: var(--muted);
             font-style: italic;
         }
 
-        .log {
-            max-width: 100%;
-            color: var(--muted);
-            font: 12px/1.65 system-ui, sans-serif;
-        }
-
-            .log p {
-                margin: 3px 0;
-            }
-
-            .log strong {
-                color: #d8c492;
-                font-weight: 500;
-            }
-
-        @media (max-width: 900px) and (min-width: 761px) {
-            .actions {
-                grid-template-columns: repeat(2, minmax(0, 1fr));
-            }
-        }
-
-        @media (max-width: 760px) {
-            .app {
-                padding: 14px 10px 24px;
-            }
-
-            header {
+        @media (max-width: 680px) {
+            .game-header {
                 align-items: flex-start;
                 flex-direction: column;
-                gap: 12px;
-                padding-bottom: 14px;
+                gap: 9px;
+                padding: 13px 10px 11px;
             }
 
-            h1 {
-                font-size: clamp(25px, 9vw, 34px);
-            }
-
-            .status {
+            .header-status {
                 width: 100%;
-                justify-content: space-between;
-                gap: 8px;
-                font-size: 11px;
+                grid-template-columns: repeat(4, 1fr);
+                text-align: left;
             }
 
-            .board {
-                min-height: 0;
-                margin-top: 14px;
-                padding: 12px;
+            .screen {
+                gap: 11px;
+                padding: 10px;
             }
 
-            .board-heading {
-                align-items: flex-start;
+            .scene {
+                padding: 14px;
+            }
+
+            .scene-heading {
                 flex-direction: column;
-                gap: 6px;
-                margin-bottom: 12px;
+                gap: 8px;
+                margin-bottom: 15px;
             }
 
-            .hint {
-                font-size: 11px;
-                line-height: 1.35;
-            }
-
-            .actions {
+            .grid,
+            .grid.three {
                 grid-template-columns: 1fr;
-                gap: 10px;
             }
 
-            .action {
-                min-height: 0;
-                padding: 12px;
+            .nav {
+                gap: 5px;
+                padding: 0 10px 10px;
             }
 
-                .action h2 {
-                    font-size: 17px;
-                }
-
-                .action p {
-                    min-height: 0;
-                    margin-bottom: 9px;
+                .nav button {
+                    min-height: 50px;
+                    padding: 7px 4px;
                     font-size: 12px;
                 }
-
-            .slot {
-                min-height: 65px;
-                gap: 6px;
-            }
-
-            .action-controls {
-                margin-top: 9px;
-            }
-
-            .start,
-            .reset {
-                min-height: 38px;
-                padding: 8px 11px;
-            }
-
-            .collection {
-                margin-top: 17px;
-            }
-
-            .hand {
-                display: grid;
-                grid-template-columns: repeat(2, minmax(0, 1fr));
-                min-height: 0;
-                gap: 9px;
-                padding: 3px 0 8px;
-                overflow: visible;
-            }
-
-            .card {
-                min-width: 0;
-                min-height: 125px;
-                padding: 10px 9px;
-            }
-
-                .card h3 {
-                    margin-top: 8px;
-                    font-size: 15px;
-                }
-
-                .card p {
-                    font-size: 10px;
-                }
-
-                .card .life {
-                    padding-top: 7px;
-                    font-size: 8px;
-                }
-
-            .empty {
-                grid-column: 1 / -1;
-                padding: 25px 0;
-            }
         }
-
-        @media (max-width: 480px) {
-    html {
-        font-size: 14px;
-    }
-
-    body {
-        overflow-x: hidden;
-        font-size: 13px;
-    }
-
-    .app {
-        width: 100%;
-        max-width: none;
-        padding: 10px 8px 20px;
-    }
-
-    header {
-        align-items: flex-start;
-        flex-direction: column;
-        gap: 9px;
-        padding-bottom: 11px;
-    }
-
-    .eyebrow,
-    .section-label {
-        font-size: 9px;
-        letter-spacing: .12em;
-    }
-
-    h1 {
-        margin-top: 2px;
-        font-size: clamp(24px, 8vw, 31px);
-        line-height: 1.05;
-    }
-
-    .status {
-        display: grid;
-        width: 100%;
-        grid-template-columns: repeat(3, auto);
-        justify-content: space-between;
-        gap: 6px;
-        font-size: 10px;
-    }
-
-    .board {
-        min-height: 0;
-        margin-top: 11px;
-        padding: 9px;
-        border-radius: 4px;
-    }
-
-    .board-heading,
-    .section-heading {
-        align-items: flex-start;
-        flex-direction: column;
-        gap: 5px;
-        margin-bottom: 9px;
-    }
-
-    .hint {
-        font-size: 10px;
-        line-height: 1.3;
-    }
-
-    .actions {
-        grid-template-columns: 1fr;
-        gap: 8px;
-    }
-
-    .action {
-        min-height: 0;
-        padding: 9px;
-    }
-
-    .action-top {
-        margin-bottom: 5px;
-    }
-
-    .action h2 {
-        font-size: 16px;
-        line-height: 1.15;
-    }
-
-    .duration,
-    .tag {
-        font-size: 9px;
-    }
-
-    .action p {
-        min-height: 0;
-        margin-bottom: 6px;
-        font-size: 11px;
-        line-height: 1.3;
-    }
-
-    .slot {
-        min-height: 52px;
-        gap: 4px;
-        font-size: 10px;
-    }
-
-    .action-controls {
-        align-items: center;
-        margin-top: 7px;
-    }
-
-    .action-note {
-        font-size: 10px;
-    }
-
-    .start,
-    .reset {
-        min-height: 34px;
-        padding: 6px 9px;
-        font-size: 12px;
-    }
-
-    .progress {
-        margin-top: 7px;
-    }
-
-    .collection {
-        margin-top: 14px;
-    }
-
-    .hand {
-        display: grid;
-        grid-template-columns: repeat(2, minmax(0, 1fr));
-        min-height: 0;
-        gap: 7px;
-        padding: 2px 0 6px;
-        overflow: visible;
-    }
-
-    .card {
-        width: 100%;
-        min-width: 0;
-        min-height: 108px;
-        padding: 8px;
-    }
-
-    .card h3 {
-        margin: 7px 0 4px;
-        font-size: 14px;
-        line-height: 1.05;
-    }
-
-    .card p {
-        font-size: 9px;
-        line-height: 1.25;
-    }
-
-    .card .life {
-        padding-top: 5px;
-        font-size: 8px;
-    }
-
-    .empty {
-        grid-column: 1 / -1;
-        padding: 20px 0;
-    }
-
-    .log {
-        font-size: 10px;
-        line-height: 1.45;
-    }
-}
-
-@media (max-width: 350px) {
-    .app {
-        padding-right: 6px;
-        padding-left: 6px;
-    }
-
-    .board {
-        padding: 8px;
-    }
-
-    .hand {
-        gap: 5px;
-    }
-
-    .card {
-        min-height: 100px;
-        padding: 7px;
-    }
-
-    .card h3 {
-        font-size: 13px;
-    }
-
-    .card p {
-        font-size: 8px;
-    }
-}
-
-@media (min-width: 768px) {
-    .actions {
-        grid-template-columns: repeat(2, minmax(0, 1fr));
-    }
-}
-
-@media (min-width: 1100px) {
-    .actions {
-        grid-template-columns: repeat(3, minmax(0, 1fr));
-    }
-}
     </style>
 </head>
 <body>
-    <main class="app">
-        <header>
-            <div>
-                <div class="eyebrow">A small engine of strange things</div>
-                <h1>The Stillroom ver 0.02</h1>
-            </div>
-
-            <div class="status">
-                <span>Day <strong id="day">1</strong></span>
-                <span>Insight <strong id="insight">0</strong></span>
-                <span id="clock">Ready</span>
-            </div>
-        </header>
-
-        <section class="board" aria-label="Action board">
-            <div class="board-heading">
-                <div class="section-label">Processing table</div>
-                <div class="hint" id="card-help">
-                    Drag cards into an action, or tap a card and then tap an action.
-                </div>
-            </div>
-
-            <div class="actions" id="actions"></div>
-        </section>
-
-        <section class="collection">
-            <div class="section-heading">
-                <div class="section-label">Your collection</div>
-                <div class="hint" id="card-count"></div>
-            </div>
-
-            <div class="hand" id="hand" aria-label="Card collection"></div>
-        </section>
-
-        <section>
-            <div class="section-heading">
-                <div class="section-label">Table notes</div>
-                <button class="reset" id="reset">Start over</button>
-            </div>
-
-            <div class="log" id="log" aria-live="polite"></div>
-        </section>
-    </main>
+    <main id="game" class="game" aria-live="polite"></main>
 
     <script>
-        const recipes = [
-            {
-                id: "study",
-                name: "Study the map",
-                time: 5000,
-                description: "Turn a map and a moment of quiet into a useful discovery.",
-                accepts: ["Map", "Silence"],
-                output: "Route",
-                note: "Needs Map + Silence",
-                result: "You trace a hidden passage through the margins."
+        "use strict";
+
+        /*
+         * DATA
+         * Game content belongs here rather than inside the scene renderers.
+         */
+        const gameData = {
+            locations: {
+                marsh: {
+                    id: "marsh",
+                    name: "The Reed Marsh",
+                    biome: "Wetland",
+                    icon: "♒",
+                    description: "A drowned stretch of land where reeds whisper around half-sunken stones.",
+                    exits: ["cottage", "old-road"],
+                    resources: ["reed-fiber", "marsh-water"],
+                    creatures: ["marsh-wisp"]
+                },
+                cottage: {
+                    id: "cottage",
+                    name: "The Stillroom Cottage",
+                    biome: "Shelter",
+                    icon: "⌂",
+                    description: "Your small workroom, protected from the marsh by old brick and stubborn ivy.",
+                    exits: ["marsh"],
+                    resources: [],
+                    creatures: []
+                },
+                "old-road": {
+                    id: "old-road",
+                    name: "The Old Road",
+                    biome: "Ruins",
+                    icon: "⌁",
+                    description: "A road abandoned by travelers but not by everything that follows them.",
+                    exits: ["marsh"],
+                    resources: ["rusted-metal"],
+                    creatures: ["road-hound"]
+                }
             },
-            {
-                id: "gather",
-                name: "Gather herbs",
-                time: 7000,
-                description: "A little patience and a patch of ground yield supplies.",
-                accepts: ["Garden", "Patience"],
-                output: "Herbs",
-                note: "Needs Garden + Patience",
-                result: "Fresh herbs are ready for a different sort of work."
+
+            items: {
+                "reed-fiber": {
+                    name: "Reed Fiber",
+                    description: "Strong, pale strands useful for binding.",
+                    type: "Material"
+                },
+                "marsh-water": {
+                    name: "Marsh Water",
+                    description: "Cloudy water with a faint silver shimmer.",
+                    type: "Material"
+                },
+                "rusted-metal": {
+                    name: "Rusted Metal",
+                    description: "A corroded fragment from something larger.",
+                    type: "Material"
+                },
+                tonic: {
+                    name: "Restorative Tonic",
+                    description: "A bitter but effective healing draught.",
+                    type: "Consumable"
+                }
             },
-            {
-                id: "brew",
-                name: "Brew a tonic",
-                time: 9000,
-                description: "Combine a remedy with something worth preserving.",
-                accepts: ["Herbs", "Memory"],
-                output: "Tonic",
-                note: "Needs Herbs + Memory",
-                result: "The mixture settles into a curious, restorative tonic."
+
+            npcs: {
+                "marsh-wisp": {
+                    name: "Marsh Wisp",
+                    role: "Wandering Creature",
+                    description: "A cold blue light drifting just above the water.",
+                    health: 18,
+                    attack: 4
+                },
+                "road-hound": {
+                    name: "Road Hound",
+                    role: "Hostile Creature",
+                    description: "A lean, ash-colored animal with an iron collar.",
+                    health: 24,
+                    attack: 6
+                }
             },
-            {
-                id: "reflect",
-                name: "Sit with a thought",
-                time: 6000,
-                description: "Give a discovery time to become understanding.",
-                accepts: ["Route", "Patience"],
-                output: "Insight",
-                note: "Needs Route + Patience",
-                result: "The route reveals a pattern you had overlooked."
+
+            buildings: {
+                cottage: {
+                    name: "Stillroom Cottage",
+                    description: "A quiet building for storing materials, crafting supplies, and recovering.",
+                    services: ["rest", "craft"]
+                }
             }
-        ];
+        };
 
-        const initialCards = [
-            ["Map", "Knowledge", "An old map with a blank corner."],
-            ["Silence", "Condition", "A rare moment without interruption."],
-            ["Garden", "Place", "A small plot behind the house."],
-            ["Patience", "Quality", "Some things cannot be hurried."],
-            ["Memory", "Knowledge", "A name you almost remember."]
-        ];
+        /*
+         * STATE
+         * This object contains game state only. It does not contain DOM elements.
+         */
+        const state = {
+            scene: "world",
+            locationId: "marsh",
+            day: 1,
+            hour: 8,
+            notice: "",
+            noticeType: "",
+            log: [
+                "You wake before the marsh fog lifts.",
+                "The stillroom is ready for another day."
+            ],
+            player: {
+                name: "The Keeper",
+                level: 1,
+                experience: 0,
+                health: 30,
+                maxHealth: 30,
+                energy: 10,
+                maxEnergy: 10,
+                insight: 0
+            },
+            inventory: {
+                "reed-fiber": 2,
+                "marsh-water": 1,
+                tonic: 1
+            },
+            combat: null
+        };
 
-        let cards = [];
-        let insight = 0;
-        let day = 1;
-        let cardId = 0;
-        let timers = {};
-        let startedAt = Date.now();
-        let selectedCardId = null;
-
-        const $ = selector => document.querySelector(selector);
-        const actionsEl = $("#actions");
-        const handEl = $("#hand");
-
-        const escapeHtml = value => String(value).replace(/[&<>"']/g, char => ({
+        /*
+         * REUSABLE UI COMPONENTS
+         */
+        const escapeHtml = value => String(value).replace(/[&<>"']/g, character => ({
             "&": "&amp;",
             "<": "&lt;",
             ">": "&gt;",
-            '"': "&quot;",
+            "\"": "&quot;",
             "'": "&#039;"
-        }[char]));
+        }[character]));
 
-        function addCard(name, type, description, life = "Keepsake") {
-            cards.push({
-                id: ++cardId,
-                name,
-                type,
-                description,
-                life
-            });
+        const currentLocation = () => gameData.locations[state.locationId];
+
+        const itemCount = itemId => state.inventory[itemId] || 0;
+
+        function itemName(itemId) {
+            return gameData.items[itemId]?.name || itemId;
         }
 
-        function log(message) {
-            const entry = document.createElement("p");
-            entry.innerHTML = message;
-            $("#log").prepend(entry);
+        function addLog(message) {
+            state.log.unshift(message);
+            state.log = state.log.slice(0, 30);
         }
 
-        function clearSelectedCard() {
-            selectedCardId = null;
-
-            document.querySelectorAll(".card.selected").forEach(card => {
-                card.classList.remove("selected");
-            });
+        function setNotice(message, type = "") {
+            state.notice = message;
+            state.noticeType = type;
         }
 
-        function selectCard(element) {
-            const id = Number(element.dataset.card);
+        function advanceTime(hours = 1) {
+            state.hour += hours;
 
-            if (selectedCardId === id) {
-                clearSelectedCard();
-                return;
+            if (state.hour >= 24) {
+                state.hour -= 24;
+                state.day += 1;
+                addLog(`Day ${state.day} begins beneath a different sky.`);
+            }
+        }
+
+        function formatTime() {
+            const hour = state.hour % 12 || 12;
+            const suffix = state.hour >= 12 ? "PM" : "AM";
+            return `${hour}:00 ${suffix}`;
+        }
+
+        function renderNotice() {
+            if (!state.notice) {
+                return "";
             }
 
-            clearSelectedCard();
-            selectedCardId = id;
-            element.classList.add("selected");
+            return `
+                    <div class="notice ${state.noticeType}">
+                        ${escapeHtml(state.notice)}
+                    </div>
+                `;
         }
 
-        function renderActions() {
-            actionsEl.innerHTML = recipes.map(recipe => `
-            <article class="action" data-action="${recipe.id}">
-              <div class="action-top">
-                <h2>${escapeHtml(recipe.name)}</h2>
-                <span class="duration">${recipe.time / 1000}s</span>
-              </div>
+        function renderPlayerPanel() {
+            const player = state.player;
+            const healthPercent = Math.max(0, player.health / player.maxHealth * 100);
+            const energyPercent = Math.max(0, player.energy / player.maxEnergy * 100);
 
-              <p>${escapeHtml(recipe.description)}</p>
+            return `
+                    <section class="panel">
+                        <div class="panel-header">
+                            <h3>${escapeHtml(player.name)}</h3>
+                            <span class="tag">Level ${player.level}</span>
+                        </div>
 
-              <div class="slot" data-slot="${recipe.id}">
-                ${escapeHtml(recipe.note)}
-              </div>
+                        <div class="stat">
+                            <div class="stat-line">
+                                <span>Health</span>
+                                <strong>${player.health} / ${player.maxHealth}</strong>
+                            </div>
+                            <div class="meter health">
+                                <span style="width: ${healthPercent}%"></span>
+                            </div>
+                        </div>
 
-              <div class="action-controls">
-                <span class="action-note" id="note-${recipe.id}">
-                  Drop cards here
-                </span>
-                <button class="start" data-start="${recipe.id}" disabled>
-                  Begin
-                </button>
-              </div>
+                        <div class="stat">
+                            <div class="stat-line">
+                                <span>Energy</span>
+                                <strong>${player.energy} / ${player.maxEnergy}</strong>
+                            </div>
+                            <div class="meter">
+                                <span style="width: ${energyPercent}%"></span>
+                            </div>
+                        </div>
 
-              <div class="progress" id="progress-${recipe.id}">
-                <span></span>
-              </div>
-            </article>
-          `).join("");
-
-            document.querySelectorAll(".action").forEach(action => {
-                action.addEventListener("dragover", event => {
-                    event.preventDefault();
-                    action.classList.add("over");
-                });
-
-                action.addEventListener("dragleave", event => {
-                    if (!action.contains(event.relatedTarget)) {
-                        action.classList.remove("over");
-                    }
-                });
-
-                action.addEventListener("drop", event => {
-                    event.preventDefault();
-                    action.classList.remove("over");
-
-                    const draggedCardId = event.dataTransfer.getData("text/plain");
-                    const card = cards.find(item => item.id === Number(draggedCardId));
-                    const recipe = recipes.find(item => item.id === action.dataset.action);
-
-                    if (card) {
-                        addToAction(recipe, card);
-                    }
-                });
-
-                action.addEventListener("click", event => {
-                    if (event.target.closest("button")) {
-                        return;
-                    }
-
-                    if (selectedCardId === null) {
-                        return;
-                    }
-
-                    const card = cards.find(item => item.id === selectedCardId);
-                    const recipe = recipes.find(item => item.id === action.dataset.action);
-
-                    if (card && addToAction(recipe, card)) {
-                        clearSelectedCard();
-                    }
-                });
-            });
-
-            document.querySelectorAll("[data-start]").forEach(button => {
-                button.addEventListener("click", () => {
-                    startAction(button.dataset.start);
-                });
-            });
+                        <div class="stat-line">
+                            <span>Insight</span>
+                            <strong>${player.insight}</strong>
+                        </div>
+                    </section>
+                `;
         }
 
-        function renderHand() {
-            $("#card-count").textContent =
-                `${cards.length} card${cards.length === 1 ? "" : "s"}`;
+        function renderInventoryPanel(compact = false) {
+            const entries = Object.entries(state.inventory)
+                .filter(([, quantity]) => quantity > 0);
 
-            handEl.innerHTML = cards.length
-                ? cards.map(card => `
-              <article class="card" draggable="true" data-card="${card.id}">
-                <span class="tag">${escapeHtml(card.type)}</span>
-                <h3>${escapeHtml(card.name)}</h3>
-                <p>${escapeHtml(card.description)}</p>
-                <span class="life">${escapeHtml(card.life)}</span>
-              </article>
-            `).join("")
-                : `<div class="empty">The table is quiet. The work is done.</div>`;
+            return `
+                    <section class="panel">
+                        <div class="panel-header">
+                            <h3>Inventory</h3>
+                            <span class="tag">${entries.length} types</span>
+                        </div>
 
-            handEl.querySelectorAll(".card").forEach(element => {
-                element.addEventListener("click", event => {
-                    event.preventDefault();
-                    selectCard(element);
-                });
+                        <div class="item-list">
+                            ${entries.length
+                    ? entries.map(([itemId, quantity]) => {
+                        const item = gameData.items[itemId];
 
-                element.addEventListener("dragstart", event => {
-                    event.dataTransfer.setData("text/plain", element.dataset.card);
-                    element.classList.add("dragging");
-                });
-
-                element.addEventListener("dragend", () => {
-                    element.classList.remove("dragging");
-                });
-            });
-        }
-
-        function addToAction(recipe, card) {
-            const slot = document.querySelector(`[data-slot="${recipe.id}"]`);
-            const selected = [...slot.querySelectorAll(".card")];
-
-            if (selected.some(item => Number(item.dataset.card) === card.id)) {
-                return false;
-            }
-
-            if (selected.length >= recipe.accepts.length) {
-                log(
-                    `There is no room for <strong>${escapeHtml(card.name)}</strong> in ` +
-                    `${escapeHtml(recipe.name)}.`
-                );
-                return false;
-            }
-
-            if (!recipe.accepts.includes(card.name)) {
-                log(
-                    `<strong>${escapeHtml(card.name)}</strong> does not fit ` +
-                    `${escapeHtml(recipe.name)}.`
-                );
-                return false;
-            }
-
-            slot.innerHTML = "";
-            selected.forEach(item => slot.appendChild(item));
-            slot.appendChild(makeCardElement(card));
-
-            const nowSelected = [...slot.querySelectorAll(".card")];
-            const ready =
-                nowSelected.length === recipe.accepts.length &&
-                recipe.accepts.every(name =>
-                    nowSelected.some(item => item.dataset.name === name)
-                );
-
-            const button = document.querySelector(`[data-start="${recipe.id}"]`);
-            button.disabled = !ready;
-
-            $(`#note-${recipe.id}`).textContent = ready
-                ? "Ready to process"
-                : `${nowSelected.length}/${recipe.accepts.length} cards placed`;
-
-            return true;
-        }
-
-        function makeCardElement(card) {
-            const element = document.createElement("article");
-
-            element.className = "card";
-            element.draggable = false;
-            element.dataset.card = card.id;
-            element.dataset.name = card.name;
-            element.style.cssText =
-                "flex-basis:92px;min-height:74px;padding:8px;";
-            element.innerHTML =
-                `<span class="tag">${escapeHtml(card.type)}</span>` +
-                `<h3 style="margin:7px 0 0;font-size:14px">` +
-                `${escapeHtml(card.name)}</h3>`;
-
-            return element;
-        }
-
-        function startAction(id) {
-            if (timers[id]) {
-                return;
-            }
-
-            const recipe = recipes.find(item => item.id === id);
-            const slot = document.querySelector(`[data-slot="${id}"]`);
-            const inputIds = [...slot.querySelectorAll(".card")]
-                .map(item => Number(item.dataset.card));
-
-            if (inputIds.length !== recipe.accepts.length) {
-                return;
-            }
-
-            const inputs = inputIds.map(inputId =>
-                cards.find(card => card.id === inputId)
-            );
-
-            if (inputs.some(card => !card)) {
-                return;
-            }
-
-            cards = cards.filter(card => !inputIds.includes(card.id));
-
-            slot.innerHTML =
-                `<span>Processing ` +
-                `${escapeHtml(inputs.map(card => card.name).join(" + "))}…</span>`;
-
-            document.querySelector(`[data-start="${id}"]`).disabled = true;
-            $(`#note-${id}`).textContent = "In progress";
-
-            const bar = $(`#progress-${id}`);
-            bar.classList.add("running");
-            bar.firstElementChild.style.transitionDuration = `${recipe.time}ms`;
-
-            requestAnimationFrame(() => {
-                bar.firstElementChild.style.width = "100%";
-            });
-
-            clearSelectedCard();
-            renderHand();
-
-            log(`${escapeHtml(recipe.name)} begins. The table keeps working.`);
-
-            timers[id] = setTimeout(() => {
-                delete timers[id];
-
-                bar.classList.remove("running");
-                bar.firstElementChild.style.transitionDuration = "0ms";
-                bar.firstElementChild.style.width = "0";
-
-                slot.innerHTML = escapeHtml(recipe.note);
-                $(`#note-${id}`).textContent = "Drop cards here";
-
-                if (recipe.output === "Insight") {
-                    insight += 1;
-                    $("#insight").textContent = insight;
-
-                    addCard(
-                        "Insight",
-                        "Discovery",
-                        "A connection made visible.",
-                        "Persistent"
-                    );
-                } else {
-                    const outputDescriptions = {
-                        Route: "A passage marked in the map's blank corner.",
-                        Herbs: "A fragrant bundle, freshly gathered.",
-                        Tonic: "A restorative mixture with an unusual glow."
-                    };
-
-                    addCard(
-                        recipe.output,
-                        "Discovery",
-                        outputDescriptions[recipe.output],
-                        "Fresh"
-                    );
+                        return `
+                                            <div class="item">
+                                                <div>
+                                                    <span class="item-name">${escapeHtml(item.name)}</span>
+                                                    ${compact
+                                ? ""
+                                : `<span class="item-description">${escapeHtml(item.description)}</span>`
+                            }
+                                                </div>
+                                                <span class="item-count">×${quantity}</span>
+                                            </div>
+                                        `;
+                    }).join("")
+                    : `<div class="empty">Your inventory is empty.</div>`
                 }
+                        </div>
 
-                log(
-                    `<strong>${escapeHtml(recipe.output)}</strong> emerges. ` +
-                    `${escapeHtml(recipe.result)}`
-                );
-
-                renderHand();
-            }, recipe.time);
+                        ${itemCount("tonic") > 0
+                    ? `
+                                    <div class="actions">
+                                        <button data-action="use-tonic">
+                                            Use tonic
+                                        </button>
+                                    </div>
+                                `
+                    : ""
+                }
+                    </section>
+                `;
         }
 
-        function updateClock() {
-            const elapsed = Math.floor((Date.now() - startedAt) / 60000);
+        function renderLogPanel() {
+            return `
+                    <section class="panel">
+                        <div class="panel-header">
+                            <h3>Field Notes</h3>
+                            <span class="tag">Day ${state.day}</span>
+                        </div>
 
-            if (elapsed >= day) {
-                day = elapsed + 1;
-                $("#day").textContent = day;
-                log("A new day settles over the stillroom.");
+                        <div class="log">
+                            ${state.log.map(entry => `<p>${escapeHtml(entry)}</p>`).join("")}
+                        </div>
+                    </section>
+                `;
+        }
+
+        function renderLocationPanel() {
+            const location = currentLocation();
+
+            return `
+                    <section class="panel">
+                        <div class="panel-header">
+                            <h3>${escapeHtml(location.name)}</h3>
+                            <span class="tag">${escapeHtml(location.biome)}</span>
+                        </div>
+
+                        <p>${escapeHtml(location.description)}</p>
+
+                        <div class="actions">
+                            ${location.exits.map(exitId => {
+                const exit = gameData.locations[exitId];
+
+                return `
+                                    <button data-action="travel" data-location="${escapeHtml(exitId)}">
+                                        Travel to ${escapeHtml(exit.name)}
+                                    </button>
+                                `;
+            }).join("")}
+                        </div>
+                    </section>
+                `;
+        }
+
+        /*
+         * SCENE MODULES
+         * Each scene reads state and returns UI. Scenes do not own game data.
+         */
+        const scenes = {
+            world: {
+                label: "Location",
+                render() {
+                    const location = currentLocation();
+
+                    return `
+                            <section class="scene">
+                                ${renderNotice()}
+
+                                <div class="scene-heading">
+                                    <div>
+                                        <div class="eyebrow">${escapeHtml(location.biome)} biome</div>
+                                        <h2>${escapeHtml(location.name)}</h2>
+                                        <p>${escapeHtml(location.description)}</p>
+                                    </div>
+                                </div>
+
+                                <div class="scene-art" aria-hidden="true">
+                                    ${location.icon}
+                                </div>
+
+                                <div class="grid">
+                                    ${renderLocationPanel()}
+                                    ${renderPlayerPanel()}
+                                </div>
+
+                                <div class="grid">
+                                    <section class="panel">
+                                        <div class="panel-header">
+                                            <h3>Local Activity</h3>
+                                            <span class="tag">${formatTime()}</span>
+                                        </div>
+
+                                        <p>
+                                            ${location.resources.length
+                            ? "The area contains resources that may be gathered."
+                            : "The area is quiet and offers shelter from the weather."
+                        }
+                                        </p>
+
+                                        <div class="actions">
+                                            ${location.resources.length
+                            ? `<button class="primary" data-action="gather">Gather resources</button>`
+                            : `<button class="primary" data-action="enter-building">Enter cottage</button>`
+                        }
+
+                                            ${location.creatures.length
+                            ? `<button class="danger" data-action="encounter">Investigate creature</button>`
+                            : ""
+                        }
+                                        </div>
+                                    </section>
+
+                                    ${renderInventoryPanel(true)}
+                                </div>
+
+                                ${renderLogPanel()}
+                            </section>
+                        `;
+                }
+            },
+
+            inventory: {
+                label: "Inventory",
+                render() {
+                    return `
+                            <section class="scene">
+                                ${renderNotice()}
+
+                                <div class="scene-heading">
+                                    <div>
+                                        <div class="eyebrow">Storage and supplies</div>
+                                        <h2>Inventory</h2>
+                                        <p>Materials and useful objects carried by the Keeper.</p>
+                                    </div>
+                                </div>
+
+                                <div class="grid">
+                                    ${renderInventoryPanel()}
+                                    ${renderPlayerPanel()}
+                                </div>
+
+                                ${renderLogPanel()}
+                            </section>
+                        `;
+                }
+            },
+
+            cottage: {
+                label: "Building",
+                render() {
+                    const building = gameData.buildings.cottage;
+
+                    return `
+                            <section class="scene">
+                                ${renderNotice()}
+
+                                <div class="scene-heading">
+                                    <div>
+                                        <div class="eyebrow">Building</div>
+                                        <h2>${escapeHtml(building.name)}</h2>
+                                        <p>${escapeHtml(building.description)}</p>
+                                    </div>
+                                </div>
+
+                                <div class="scene-art" aria-hidden="true">⌂</div>
+
+                                <div class="grid three">
+                                    <section class="panel">
+                                        <h3>Rest</h3>
+                                        <p>Recover health and energy until the next morning.</p>
+                                        <button class="primary" data-action="rest">Rest</button>
+                                    </section>
+
+                                    <section class="panel">
+                                        <h3>Workbench</h3>
+                                        <p>Turn gathered materials into a restorative tonic.</p>
+                                        <button
+                                            data-action="craft-tonic"
+                                            ${itemCount("reed-fiber") < 2 || itemCount("marsh-water") < 1 ? "disabled" : ""}
+                                        >
+                                            Craft tonic
+                                        </button>
+                                    </section>
+
+                                    <section class="panel">
+                                        <h3>Leave</h3>
+                                        <p>Return to the nearest outdoor location.</p>
+                                        <button data-action="travel" data-location="marsh">
+                                            Return to marsh
+                                        </button>
+                                    </section>
+                                </div>
+
+                                <div class="grid">
+                                    ${renderInventoryPanel(true)}
+                                    ${renderPlayerPanel()}
+                                </div>
+
+                                ${renderLogPanel()}
+                            </section>
+                        `;
+                }
+            },
+
+            combat: {
+                label: "Combat",
+                render() {
+                    const combat = state.combat;
+                    const creature = gameData.npcs[combat.creatureId];
+                    const healthPercent = Math.max(0, combat.health / creature.health * 100);
+
+                    return `
+                            <section class="scene">
+                                ${renderNotice()}
+
+                                <div class="scene-heading">
+                                    <div>
+                                        <div class="eyebrow">${escapeHtml(creature.role)}</div>
+                                        <h2>${escapeHtml(creature.name)}</h2>
+                                        <p>${escapeHtml(creature.description)}</p>
+                                    </div>
+                                </div>
+
+                                <div class="scene-art" aria-hidden="true">☽</div>
+
+                                <div class="grid">
+                                    <section class="panel">
+                                        <div class="panel-header">
+                                            <h3>${escapeHtml(creature.name)}</h3>
+                                            <span class="tag">Enemy</span>
+                                        </div>
+
+                                        <div class="stat">
+                                            <div class="stat-line">
+                                                <span>Health</span>
+                                                <strong>${combat.health} / ${creature.health}</strong>
+                                            </div>
+                                            <div class="meter">
+                                                <span style="width: ${healthPercent}%"></span>
+                                            </div>
+                                        </div>
+
+                                        <div class="actions">
+                                            <button class="primary" data-action="attack">Attack</button>
+                                            <button data-action="use-tonic">Use tonic</button>
+                                            <button class="danger" data-action="flee">Flee</button>
+                                        </div>
+                                    </section>
+
+                                    ${renderPlayerPanel()}
+                                </div>
+
+                                ${renderLogPanel()}
+                            </section>
+                        `;
+                }
+            }
+        };
+
+        /*
+         * APPLICATION SHELL
+         */
+        function renderShell() {
+            const scene = scenes[state.scene];
+
+            document.querySelector("#game").innerHTML = `
+                    <header class="game-header">
+                        <div>
+                            <div class="eyebrow">A mobile simulation management game</div>
+                            <h1>The Stillroom</h1>
+                        </div>
+
+                        <div class="header-status">
+                            <span>Day</span>
+                            <strong>${state.day}</strong>
+                            <span>Time</span>
+                            <strong>${formatTime()}</strong>
+                            <span>Scene</span>
+                            <strong>${escapeHtml(scene.label)}</strong>
+                        </div>
+                    </header>
+
+                    <div class="screen">
+                        ${scene.render()}
+                    </div>
+
+                    <nav class="nav" aria-label="Game navigation">
+                        <button class="${state.scene === "world" ? "active" : ""}" data-action="scene" data-scene="world">
+                            World
+                        </button>
+                        <button class="${state.scene === "inventory" ? "active" : ""}" data-action="scene" data-scene="inventory">
+                            Inventory
+                        </button>
+                        <button class="${state.scene === "cottage" ? "active" : ""}" data-action="scene" data-scene="cottage">
+                            Cottage
+                        </button>
+                        <button data-action="new-day">
+                            New day
+                        </button>
+                    </nav>
+                `;
+        }
+
+        function changeScene(sceneName) {
+            if (!scenes[sceneName]) {
+                return;
+            }
+
+            state.scene = sceneName;
+            setNotice("");
+            renderShell();
+        }
+
+        function travel(locationId) {
+            if (!gameData.locations[locationId]) {
+                return;
+            }
+
+            state.locationId = locationId;
+            state.combat = null;
+            state.scene = locationId === "cottage" ? "cottage" : "world";
+            advanceTime(1);
+            addLog(`You travel to ${gameData.locations[locationId].name}.`);
+            setNotice("");
+            renderShell();
+        }
+
+        function gather() {
+            const location = currentLocation();
+
+            if (!location.resources.length) {
+                setNotice("There is nothing useful to gather here.", "error");
+                renderShell();
+                return;
+            }
+
+            const resourceId = location.resources[
+                Math.floor(Math.random() * location.resources.length)
+            ];
+
+            state.inventory[resourceId] = itemCount(resourceId) + 1;
+            state.player.energy = Math.max(0, state.player.energy - 1);
+            state.player.experience += 2;
+            advanceTime(1);
+
+            addLog(`You gather 1 ${itemName(resourceId)}.`);
+            setNotice(`${itemName(resourceId)} added to your inventory.`);
+            renderShell();
+        }
+
+        function beginEncounter() {
+            const location = currentLocation();
+
+            if (!location.creatures.length) {
+                return;
+            }
+
+            const creatureId = location.creatures[
+                Math.floor(Math.random() * location.creatures.length)
+            ];
+
+            state.combat = {
+                creatureId,
+                health: gameData.npcs[creatureId].health
+            };
+            state.scene = "combat";
+            setNotice("");
+            addLog(`A ${gameData.npcs[creatureId].name.toLowerCase()} blocks your path.`);
+            renderShell();
+        }
+
+        function attack() {
+            if (!state.combat) {
+                return;
+            }
+
+            const creature = gameData.npcs[state.combat.creatureId];
+            const playerDamage = 5 + Math.floor(Math.random() * 4);
+            const enemyDamage = creature.attack;
+
+            state.combat.health -= playerDamage;
+
+            if (state.combat.health <= 0) {
+                state.player.experience += 8;
+                state.player.insight += 1;
+                state.combat = null;
+                state.scene = "world";
+                addLog(`You defeat the ${creature.name.toLowerCase()}.`);
+                setNotice("The encounter reveals a little more about this place.");
+                renderShell();
+                return;
+            }
+
+            state.player.health = Math.max(0, state.player.health - enemyDamage);
+            addLog(`You strike for ${playerDamage}. The creature answers for ${enemyDamage}.`);
+
+            if (state.player.health <= 0) {
+                state.player.health = 1;
+                state.combat = null;
+                state.scene = "cottage";
+                addLog("You retreat to the cottage before the marsh can take you.");
+                setNotice("You barely escaped. Rest before returning.", "error");
+            }
+
+            renderShell();
+        }
+
+        function useTonic() {
+            if (itemCount("tonic") <= 0) {
+                setNotice("You have no tonic.", "error");
+                renderShell();
+                return;
+            }
+
+            state.inventory.tonic -= 1;
+            state.player.health = Math.min(
+                state.player.maxHealth,
+                state.player.health + 12
+            );
+            addLog("You drink a restorative tonic.");
+            setNotice("Your health improves.");
+            renderShell();
+        }
+
+        function rest() {
+            state.player.health = state.player.maxHealth;
+            state.player.energy = state.player.maxEnergy;
+            state.day += 1;
+            state.hour = 7;
+            addLog("You rest until morning. The stillroom feels warmer.");
+            setNotice("Health and energy restored.");
+            renderShell();
+        }
+
+        function craftTonic() {
+            if (itemCount("reed-fiber") < 2 || itemCount("marsh-water") < 1) {
+                setNotice("You need 2 Reed Fiber and 1 Marsh Water.", "error");
+                renderShell();
+                return;
+            }
+
+            state.inventory["reed-fiber"] -= 2;
+            state.inventory["marsh-water"] -= 1;
+            state.inventory.tonic = itemCount("tonic") + 1;
+            state.player.experience += 4;
+            advanceTime(1);
+
+            addLog("You craft a restorative tonic at the workbench.");
+            setNotice("Restorative tonic added to your inventory.");
+            renderShell();
+        }
+
+        function newDay() {
+            state.day += 1;
+            state.hour = 7;
+            state.player.energy = state.player.maxEnergy;
+            addLog(`Day ${state.day} begins.`);
+            setNotice("A new day begins.");
+            renderShell();
+        }
+
+        function handleAction(event) {
+            const button = event.target.closest("[data-action]");
+
+            if (!button) {
+                return;
+            }
+
+            const action = button.dataset.action;
+
+            switch (action) {
+                case "scene":
+                    changeScene(button.dataset.scene);
+                    break;
+                case "travel":
+                    travel(button.dataset.location);
+                    break;
+                case "gather":
+                    gather();
+                    break;
+                case "encounter":
+                    beginEncounter();
+                    break;
+                case "attack":
+                    attack();
+                    break;
+                case "flee":
+                    state.combat = null;
+                    state.scene = "world";
+                    addLog("You leave the encounter behind.");
+                    setNotice("You retreat to safer ground.");
+                    renderShell();
+                    break;
+                case "use-tonic":
+                    useTonic();
+                    break;
+                case "rest":
+                    rest();
+                    break;
+                case "craft-tonic":
+                    craftTonic();
+                    break;
+                case "enter-building":
+                    changeScene("cottage");
+                    break;
+                case "new-day":
+                    newDay();
+                    break;
+                default:
+                    break;
             }
         }
 
-        function resetGame() {
-            Object.values(timers).forEach(clearTimeout);
+        document.addEventListener("click", handleAction);
 
-            timers = {};
-            cards = [];
-            insight = 0;
-            day = 1;
-            cardId = 0;
-            startedAt = Date.now();
-
-            clearSelectedCard();
-
-            initialCards.forEach(([name, type, description]) => {
-                addCard(name, type, description);
-            });
-
-            $("#insight").textContent = "0";
-            $("#day").textContent = "1";
-            $("#log").innerHTML = "";
-
-            renderActions();
-            renderHand();
-
-            log("A new beginning. Five cards wait on the table.");
-        }
-
-        $("#reset").addEventListener("click", resetGame);
-        setInterval(updateClock, 15000);
-
-        resetGame();
+        renderShell();
     </script>
 </body>
 </html>
